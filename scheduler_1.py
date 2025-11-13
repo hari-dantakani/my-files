@@ -1,3 +1,4 @@
+
 from pathlib import Path
 import logging
 import yaml
@@ -18,16 +19,22 @@ import yaml
 logger = logging.getLogger(__name__)
 
 def should_run_now(schedule_str: str, now: datetime.datetime) -> bool:
-    
+    """
+    Decide if a job should run now based on schedule pattern.
+    Examples:
+      /1** -> every 1 minute
+      /2** -> every 2 minutes
+      /1H  -> every 1 hour
+    """
     if not schedule_str or not schedule_str.startswith("/"):
         return False
 
     try:
-        
+        # Pattern: /5** → every 5 minutes
         if schedule_str.endswith("**"):
             minutes = int(schedule_str[1:-2])
             return now.minute % minutes == 0
-        
+        # Pattern: /1H → every 1 hour
         elif schedule_str.endswith("H"):
             hours = int(schedule_str[1:-1])
             return now.minute == 0 and now.hour % hours == 0
@@ -62,13 +69,17 @@ def init_scheduler(today_jobs):
         logger.exception("Failed to load YAML file")
         return
 
-    
+    # ✅ Expecting YAML with top-level "models"
     models = data.get("models", [])
     if not models:
         logger.warning("No 'models' section found in scheduler YAML")
         return
 
-    
+    # ✅ Directly treat each model as a scheduled job
+    #--> add line
+    #now = datetime.datetime.now()
+    #today_jobs = []
+    # today_jobs = models
     now = datetime.datetime.now()
     today_jobs = []
 
@@ -89,3 +100,9 @@ def init_scheduler(today_jobs):
         get_mm_jobs_to_run(today_jobs)
     except Exception:
         logger.exception("Error while dispatching model monitoring jobs")
+    
+   
+
+if __name__ == "__main__":
+     today_jobs = []  
+     init_scheduler(today_jobs)
