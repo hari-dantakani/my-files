@@ -1,0 +1,76 @@
+models:
+  - model:
+      name: Secured_Capital PD
+      rs_mm_lib_version: 3.4
+
+      sources:
+        - source:
+            sourceAlias: source1
+            sourceQuery: "SELECT observation_date, pd_rating, brand FROM XXXXX"
+
+        - source:
+            sourceAlias: source2
+            sourceQuery: "SELECT observation_date, pd_rating, brand FROM yyyyy"
+
+      output: dmnel-rsksoi-prd-01.model_monitoring_output.secured_capital_pd
+
+      description: "Secured Capital PD Model"
+
+      metricVersion:
+        name: europe-docker.pkg.dev/mgmt-bak-prd-dbdf/main/ap/mld/al17449/images/ap-mld-img-riskit:1.0.0
+
+      monitor:
+        PeriodColumn: OBSERVATION_DATE
+
+      metrics:
+        - metric:
+            description: AUC ALL
+            outputColumn: AUC
+            outputType: float
+            groupingColumn: BRAND
+            metricGrouping: ALL
+            metricFunction: AUC(source1.pd_rating, source2.pd_rating)
+
+        - metric:
+            description: AUC BTL
+            outputColumn: AUC
+            outputType: float
+            groupingColumn: BRAND
+            metricGrouping: BTL
+            metricFunction: AUC(source1.pd_rating, source2.pd_rating)
+            metricFilter: "WHERE brand = 'BTL'"
+
+        - metric:
+            description: AUC NOT BTL
+            outputColumn: AUC
+            outputType: float
+            groupingColumn: BRAND
+            metricGrouping: OTHER
+            metricFunction: AUC(source1.pd_rating, source2.pd_rating)
+            metricFilter: "WHERE brand != 'BTL'"
+
+        - metric:
+            description: PD ALL
+            outputColumn: PD
+            outputType: float
+            groupingColumn: BRAND
+            metricGrouping: ALL
+            metricFunction: source1.pd_rating
+
+        - metric:
+            description: PD BTL
+            outputColumn: PD
+            outputType: float
+            groupingColumn: BRAND
+            metricGrouping: BTL
+            metricFunction: source1.pd_rating
+            metricFilter: "WHERE brand = 'BTL'"
+
+        - metric:
+            description: PD NOT BTL
+            outputColumn: PD
+            outputType: float
+            groupingColumn: BRAND
+            metricGrouping: OTHER
+            metricFunction: source1.pd_rating
+            metricFilter: "WHERE brand != 'BTL'"
